@@ -1,15 +1,21 @@
 import {Header, StatsCard, TripCard} from "../../../components";
-import {dashboardStats, user, allTrips} from "~/constants";
+import {allTrips, dashboardStats} from "~/constants";
+import {getUser} from "~/appwrite/auth";
+import type {Route} from "./+types/dashboard";
 
+const { totalUsers, usersJoined, totalTrips, tripsCreated, userRole } = dashboardStats;
 
-const Dashboard = () => {
+export async function clientLoader() {
+    return await getUser();
+}
 
-    const { totalUsers, usersJoined, totalTrips, tripsCreated, userRole } = dashboardStats
+const Dashboard = ({ loaderData }: Route.ComponentProps) => {
+    const user = loaderData as User | null;
 
     return (
         <main className="dashboard wrapper">
             <Header
-                title={`Welcome ${user?.name ?? 'Guest'} `}
+                title={`Welcome ${user?.name ?? "Guest"}`}
                 description="Track activity, trends and popular destinatons in real time"
             />
 
@@ -20,29 +26,24 @@ const Dashboard = () => {
                         total={totalUsers}
                         currentMonthCount={usersJoined.currentMonth}
                         lastMonthCount={usersJoined.lastMonth}
-
                     />
                     <StatsCard
                         headerTitle="Total Trips"
                         total={totalTrips}
                         currentMonthCount={tripsCreated.currentMonth}
                         lastMonthCount={tripsCreated.lastMonth}
-
                     />
                     <StatsCard
                         headerTitle="Active Users"
                         total={userRole.total}
                         currentMonthCount={userRole.currentMonth}
                         lastMonthCount={userRole.lastMonth}
-
                     />
                 </div>
             </section>
 
             <section className="container">
-                <h1 className="text-xl font-semibold text-dark-100">
-                    Created Trips
-                </h1>
+                <h1 className="text-xl font-semibold text-dark-100">Created Trips</h1>
 
                 <div className="trip-grid">
                     {allTrips.slice(0, 4).map(({ id, name, imageUrls, itinerary, tags, estimatedPrice }) => (
@@ -51,15 +52,15 @@ const Dashboard = () => {
                             id={id.toString()}
                             name={name}
                             imageUrl={imageUrls[0]}
-                            location={itinerary?.[0]?.location ?? ''}
+                            location={itinerary?.[0]?.location ?? ""}
                             tags={tags}
                             price={estimatedPrice}
                         />
                     ))}
                 </div>
             </section>
-
         </main>
-    )
-}
-export default Dashboard
+    );
+};
+
+export default Dashboard;

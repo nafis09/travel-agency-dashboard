@@ -112,9 +112,11 @@ export const getAllUsers = async (limit: number, offset: number) => {
 
         if(total === 0) return { users: [], total };
 
-        return { users, total };
+        // Syncfusion Grid expects plain objects; Appwrite documents can have non-standard prototypes.
+        return { users: users.map((u) => ({ ...u })), total };
     } catch (e) {
         console.log('Error fetching users')
         return { users: [], total: 0 }
     }
 }
+
