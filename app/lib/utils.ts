@@ -11,18 +11,40 @@ export const formatDate = (dateString: string): string => {
 };
 
 export function parseMarkdownToJson(markdownText: string): unknown | null {
-    const regex = /```json\n([\s\S]+?)\n```/;
-    const match = markdownText.match(regex);
+    const text = String(markdownText ?? "").trim();
 
-    if (match && match[1]) {
+    // 1) ```json ... ``` fenced blocks
+    const fenced = text.match(/```json\s*([\s\S]+?)\s*```/i);
+    if (fenced?.[1]) {
         try {
-            return JSON.parse(match[1]);
+            return JSON.parse(fenced[1]);
         } catch (error) {
-            console.error("Error parsing JSON:", error);
+            console.error("Error parsing fenced JSON:", error);
             return null;
         }
     }
-    console.error("No valid JSON found in markdown text.");
+
+    // 2) Raw JSON body
+    try {
+        return JSON.parse(text);
+    } catch {
+        // fall through
+    }
+
+    // 3) Best-effort extract the first {...} span
+    const firstBrace = text.indexOf("{");
+    const lastBrace = text.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const candidate = text.slice(firstBrace, lastBrace + 1);
+        try {
+            return JSON.parse(candidate);
+        } catch (error) {
+            console.error("Error parsing extracted JSON:", error);
+            return null;
+        }
+    }
+
+    console.error("No valid JSON found in text.");
     return null;
 }
 
