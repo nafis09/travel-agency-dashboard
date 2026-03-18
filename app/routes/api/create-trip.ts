@@ -108,6 +108,56 @@ Return ONLY valid JSON (no markdown fences). Use double quotes for all keys/stri
     let warning: string | undefined;
     let trip: unknown | null = null;
 
+    const buildFallbackTrip = (warningMessage: string) => {
+      warning = warningMessage;
+
+      const estimateFromBudget = (b: string) => {
+        const v = b.toLowerCase();
+        if (v.includes("low")) return "$700";
+        if (v.includes("mid")) return "$1500";
+        if (v.includes("high") || v.includes("lux")) return "$3000";
+        return "$1200";
+      };
+
+      trip = {
+        name: `${numberOfDays}-Day Trip to ${country}`,
+        description: `A ${numberOfDays}-day ${travelStyle} itinerary in ${country} focused on ${interests}.`,
+        estimatedPrice: estimateFromBudget(budget),
+        duration: numberOfDays,
+        budget,
+        travelStyle,
+        country,
+        interests,
+        groupType,
+        bestTimeToVisit: [
+          "Spring (Mar-May): mild weather and fewer crowds",
+          "Summer (Jun-Aug): festivals and long daylight hours",
+          "Autumn (Sep-Nov): pleasant temperatures and fall colors",
+          "Winter (Dec-Feb): quieter season with lower prices",
+        ],
+        weatherInfo: [
+          "Spring: mild temperatures",
+          "Summer: warm to hot temperatures",
+          "Autumn: cool to mild temperatures",
+          "Winter: cold to cool temperatures",
+        ],
+        location: {
+          city: country,
+          coordinates: [0, 0],
+          openStreetMap: "",
+        },
+        itinerary: Array.from({ length: numberOfDays }, (_, i) => ({
+          day: i + 1,
+          location: country,
+          activities: [
+            { time: "Morning", description: "Explore a landmark area and take a walking tour." },
+            { time: "Afternoon", description: "Visit a museum/market and try local food." },
+            { time: "Evening", description: "Relax with a scenic viewpoint and dinner." },
+          ],
+        })),
+      };
+    };
+
     let textResult: Awaited<
       ReturnType<ReturnType<typeof genAI.getGenerativeModel>["generateContent"]>
     > | null = null;
@@ -130,65 +180,20 @@ Return ONLY valid JSON (no markdown fences). Use double quotes for all keys/stri
           : undefined;
 
         // Fallback: generate a simple itinerary locally so the app still functions without Gemini quota.
-        warning = retryAfterSeconds
-          ? `Gemini quota/rate limit exceeded. Used fallback itinerary. Retry Gemini after ~${retryAfterSeconds}s.`
-          : "Gemini quota/rate limit exceeded. Used fallback itinerary.";
-
-        const estimateFromBudget = (b: string) => {
-          const v = b.toLowerCase();
-          if (v.includes("low")) return "$700";
-          if (v.includes("mid")) return "$1500";
-          if (v.includes("high") || v.includes("lux")) return "$3000";
-          return "$1200";
-        };
-
-        trip = {
-          name: `${numberOfDays}-Day Trip to ${country}`,
-          description:
-            `A ${numberOfDays}-day ${travelStyle} itinerary in ${country} focused on ${interests}.`,
-          estimatedPrice: estimateFromBudget(budget),
-          duration: numberOfDays,
-          budget,
-          travelStyle,
-          country,
-          interests,
-          groupType,
-          bestTimeToVisit: [
-            "Spring (Mar-May): mild weather and fewer crowds",
-            "Summer (Jun-Aug): festivals and long daylight hours",
-            "Autumn (Sep-Nov): pleasant temperatures and fall colors",
-            "Winter (Dec-Feb): quieter season with lower prices",
-          ],
-          weatherInfo: [
-            "Spring: mild temperatures",
-            "Summer: warm to hot temperatures",
-            "Autumn: cool to mild temperatures",
-            "Winter: cold to cool temperatures",
-          ],
-          location: {
-            city: country,
-            coordinates: [0, 0],
-            openStreetMap: "",
-          },
-          itinerary: Array.from({ length: numberOfDays }, (_, i) => ({
-            day: i + 1,
-            location: country,
-            activities: [
-              {
-                time: "Morning",
-                description: "Explore a landmark area and take a walking tour.",
-              },
-              {
-                time: "Afternoon",
-                description: "Visit a museum/market and try local food.",
-              },
-              {
-                time: "Evening",
-                description: "Relax with a scenic viewpoint and dinner.",
-              },
-            ],
-          })),
-        };
+        buildFallbackTrip(
+          retryAfterSeconds
+            ? `Gemini quota/rate limit exceeded. Used fallback itinerary. Retry Gemini after ~${retryAfterSeconds}s.`
+            : "Gemini quota/rate limit exceeded. Used fallback itinerary.",
+        );
+      } else if (
+        message.includes("[403") ||
+        message.includes("403 Forbidden") ||
+        message.toLowerCase().includes("forbidden")
+      ) {
+        // Common in dev when the key is invalid/revoked or reported leaked. Keep the app usable.
+        buildFallbackTrip(
+          "Gemini rejected the API key (403). Used fallback itinerary. Rotate GEMINI_API_KEY and restart the dev server.",
+        );
       } else {
         return data(
           { error: message, ...(isDev ? { stage: "gemini" } : {}) },
