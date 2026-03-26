@@ -167,7 +167,6 @@ Return ONLY valid JSON (no markdown fences). Use double quotes for all keys/stri
         .generateContent([prompt]);
     } catch (e: any) {
       const message = e?.message ? String(e.message) : "Gemini request failed";
-      console.error("Gemini error", e);
 
       // Bubble up rate limit/quota errors as 429 so the client can retry/back off.
       if (message.includes("[429") || message.includes("Too Many Requests")) {
@@ -229,7 +228,6 @@ Return ONLY valid JSON (no markdown fences). Use double quotes for all keys/stri
       );
     } catch (e: any) {
       const message = e?.message ? String(e.message) : "Unsplash request failed";
-      console.error("Unsplash fetch error", e);
       return data(
         { error: message, ...(isDev ? { stage: "unsplash" } : {}) },
         { status: 502 },
@@ -289,7 +287,6 @@ Return ONLY valid JSON (no markdown fences). Use double quotes for all keys/stri
       if (lastErr) throw lastErr;
     } catch (e: any) {
       const message = e?.message ? String(e.message) : "Appwrite request failed";
-      console.error("Appwrite createDocument error", e);
       return data(
         {
           error: message,
@@ -301,7 +298,6 @@ Return ONLY valid JSON (no markdown fences). Use double quotes for all keys/stri
 
     return data(warning ? { id: result.$id, warning } : { id: result.$id });
   } catch (e) {
-    console.error("Error generating travel plan", e);
     const message = (e as any)?.message ? String((e as any).message) : null;
     return data(
       {

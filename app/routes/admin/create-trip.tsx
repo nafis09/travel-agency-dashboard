@@ -4,7 +4,7 @@ import type { Route } from './+types/create-trip'
 import {comboBoxItems, selectItems} from "~/constants";
 import {cn, formatKey} from "~/lib/utils";
 import {LayerDirective, LayersDirective, MapsComponent} from "@syncfusion/ej2-react-maps";
-import React, {useState} from "react";
+import {useState, type FormEvent} from "react";
 import {world_map} from "~/constants/world_map";
 import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import {account} from "~/appwrite/client";
@@ -33,7 +33,6 @@ export const loader = async () => {
         }));
 
     } catch (error) {
-        console.error('Failed to load countries:', error);
         return []; // return empty array as fallback instead of crashing
     }
 }
@@ -58,9 +57,10 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
     const [loading, setLoading] = useState(false);
 
 
-    const handleSubmit =  async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit =  async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setLoading(true);
+        setError(null);
 
         if(
             !formData.country ||
@@ -82,7 +82,7 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
 
         const user = await account.get()
         if(!user.$id) {
-            console.error("User not authenticated");
+            setError("User not authenticated");
             setLoading(false);
             return;
         }
@@ -115,11 +115,10 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
             const result: CreateTripResponse = await response.json();
 
             if(result?.id) navigate(`/trips/${result.id}`)
-            else console.error("Error creating trip");
+            else setError("Error creating trip");
 
 
         } catch (e){
-            console.error("Error generating trip", e);
             setError(e instanceof Error ? e.message : 'Error generating trip');
         } finally {
             setLoading(false)
@@ -146,6 +145,12 @@ const CreateTrip = ({ loaderData }: Route.ComponentProps) => {
     return (
         <main className="flex flex-col gap-10 pb-20 wrapper">
             <Header title="Add a New Trips" description="View and edit AI-generated travel plans" />
+
+            {countries.length === 0 && (
+                <section className="error">
+                    <p>Failed to load countries. Check your internet connection and try again.</p>
+                </section>
+            )}
 
             <section className="mt-2.5 wrapper-md">
                 <form className="trip-form" onSubmit={handleSubmit}>

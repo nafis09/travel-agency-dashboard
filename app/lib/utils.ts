@@ -19,7 +19,6 @@ export function parseMarkdownToJson(markdownText: string): unknown | null {
         try {
             return JSON.parse(fenced[1]);
         } catch (error) {
-            console.error("Error parsing fenced JSON:", error);
             return null;
         }
     }
@@ -39,12 +38,10 @@ export function parseMarkdownToJson(markdownText: string): unknown | null {
         try {
             return JSON.parse(candidate);
         } catch (error) {
-            console.error("Error parsing extracted JSON:", error);
             return null;
         }
     }
 
-    console.error("No valid JSON found in text.");
     return null;
 }
 
@@ -54,7 +51,6 @@ export function parseTripData(jsonString: string): Trip | null {
 
         return data;
     } catch (error) {
-        console.error("Failed to parse trip data:", error);
         return null;
     }
 }

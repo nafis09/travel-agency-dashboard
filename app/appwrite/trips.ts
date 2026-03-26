@@ -9,7 +9,6 @@ export const getAllTrips = async (limit: number, offset: number) => {
     )
 
     if(allTrips.total === 0) {
-        console.error("No trips found.");
         return { allTrips: [], total: 0 };
     }
 
@@ -27,7 +26,6 @@ export const getTripById = async (tripId: string) => {
     )
 
     if(!trip.$id) {
-        console.log('Trip not found')
         return null
     }
 

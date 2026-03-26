@@ -11,7 +11,6 @@ export const getExistingUser = async (id: string) => {
         );
         return total > 0 ? documents[0] : null;
     } catch (error) {
-        console.error("Error fetching user:", error);
         return null;
     }
 };
@@ -41,7 +40,7 @@ export const storeUserData = async () => {
 
         if (!createdUser.$id) redirect("/sign-in");
     } catch (error) {
-        console.error("Error storing user data:", error);
+        // Keep the UI flow functional without spamming the browser console.
     }
 };
 
@@ -56,7 +55,6 @@ const getGooglePicture = async (accessToken: string) => {
         const { photos } = await response.json();
         return photos?.[0]?.url || null;
     } catch (error) {
-        console.error("Error fetching Google picture:", error);
         return null;
     }
 };
@@ -69,7 +67,7 @@ export const loginWithGoogle = async () => {
             `${window.location.origin}/404`
         );
     } catch (error) {
-        console.error("Error during OAuth2 session creation:", error);
+        // Ignore; the UI remains on the sign-in screen.
     }
 };
 
@@ -77,7 +75,7 @@ export const logoutUser = async () => {
     try {
         await account.deleteSession("current");
     } catch (error) {
-        console.error("Error during logout:", error);
+        // Ignore; app will treat the user as signed out on next auth check.
     }
 };
 
@@ -97,7 +95,6 @@ export const getUser = async () => {
 
         return documents.length > 0 ? documents[0] : redirect("/sign-in");
     } catch (error) {
-        console.error("Error fetching user:", error);
         return null;
     }
 };
@@ -115,7 +112,6 @@ export const getAllUsers = async (limit: number, offset: number) => {
         // Syncfusion Grid expects plain objects; Appwrite documents can have non-standard prototypes.
         return { users: users.map((u) => ({ ...u })), total };
     } catch (e) {
-        console.log('Error fetching users')
         return { users: [], total: 0 }
     }
 }

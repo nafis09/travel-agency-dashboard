@@ -1,4 +1,3 @@
-import React from 'react'
 import {Link, redirect} from "react-router";
 import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
 import {loginWithGoogle} from "~/appwrite/auth";
@@ -10,7 +9,7 @@ export async function clientLoader() {
 
         if(user.$id) return redirect('/')
     } catch (e) {
-        console.log('Error fetching user', e)
+        // Treat as signed out.
     }
 }
 
