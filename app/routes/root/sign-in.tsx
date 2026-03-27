@@ -1,13 +1,18 @@
 import {Link, redirect} from "react-router";
 import {ButtonComponent} from "@syncfusion/ej2-react-buttons";
-import {loginWithGoogle} from "~/appwrite/auth";
+import {getExistingUser, loginWithGoogle, storeUserData} from "~/appwrite/auth";
 import {account} from "~/appwrite/client";
 
 export async function clientLoader() {
     try {
         const user = await account.get()
 
-        if(user.$id) return redirect('/')
+        if(user.$id) {
+            const existingUser = await getExistingUser(user.$id)
+            if(!existingUser) await storeUserData()
+
+            return redirect('/')
+        }
     } catch (e) {
         // Treat as signed out.
     }

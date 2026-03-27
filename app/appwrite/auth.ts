@@ -35,12 +35,16 @@ export const storeUserData = async () => {
                 name: user.name,
                 imageUrl: profilePicture,
                 joinedAt: new Date().toISOString(),
+                status: "user",
             }
         );
 
-        if (!createdUser.$id) redirect("/sign-in");
+        return createdUser?.$id ? createdUser : null;
     } catch (error) {
-        // Keep the UI flow functional without spamming the browser console.
+        if (import.meta.env.DEV) {
+            console.warn("Failed to store user data in Appwrite Database:", error);
+        }
+        return null;
     }
 };
 
@@ -115,4 +119,3 @@ export const getAllUsers = async (limit: number, offset: number) => {
         return { users: [], total: 0 }
     }
 }
-
